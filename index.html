@@ -1,54 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>我的第一个网页</title>
+    <title>跳转WPS</title>
     <style>
-        /* 这里开始布置样式 */
-        * {
+        /* 简单美化，居中按钮 */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            background-color: #f5f5f5;
         }
-
-        /* 顶部 */
-        .header {
-            background: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
+        .wps-btn {
+            padding: 16px 40px;
+            font-size: 20px;
+            background-color: #ff7d00;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
         }
-
-        /* 中间内容 */
-        .content {
-            width: 80%;
-            margin: 30px auto; /* 自动居中 */
-            line-height: 1.6;
-        }
-
-        /* 底部 */
-        .footer {
-            background: #333;
-            color: white;
-            text-align: center;
-            padding: 15px;
-            margin-top: 50px;
+        .wps-btn:hover {
+            background-color: #e67000;
         }
     </style>
 </head>
-
 <body>
-    <!-- 顶部 -->
-    <div class="header">我是网页顶部</div>
-
-    <!-- 中间内容 -->
-    <div class="content">
-        <h1>欢迎来到我的网页</h1>
-        <p>这里可以写文字</p>
-        <p>这里可以放图片、按钮、表单</p>
-    </div>
-
-    <!-- 底部 -->
-    <div class="footer">底部版权信息</div>
+    <!-- 点击跳转WPS官网 -->
+    <button class="wps-btn" onclick="window.open('https://www.wps.cn/','_blank')">WPS</button>
 </body>
 </html>
