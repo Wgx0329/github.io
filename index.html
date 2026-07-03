@@ -2,34 +2,669 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>跳转WPS</title>
+    <title>工具导航页</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 简单美化，居中按钮 */
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        * {
             margin: 0;
-            background-color: #f5f5f5;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", "PingFang SC", sans-serif;
         }
-        .wps-btn {
-            padding: 16px 40px;
-            font-size: 20px;
-            background-color: #ff7d00;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+        body {
+            background-color: #ffffff;
+            min-height: 100vh;
+            padding: 60px 20px;
+            position: relative;
+        }
+        /* 右上角搜索区域容器 */
+        .top-right-area {
+            position: absolute;
+            top: 26px;
+            right: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+        }
+        /* 搜索外层容器，用于下拉定位 */
+        .search-wrap {
+            position: relative;
+        }
+        .search-main {
+            display: flex;
+            gap: 8px;
+        }
+        .search-main input {
+            padding: 10px 16px;
+            border: 1px solid #ccd6e0;
+            border-radius: 30px;
+            font-size: 15px;
+            width: 280px;
+            outline: none;
             transition: 0.2s;
         }
-        .wps-btn:hover {
-            background-color: #e67000;
+        .search-main input:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 3px rgba(64,159,255,0.15);
+        }
+        .search-main button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #409eff;
+            color: #fff;
+            cursor: pointer;
+        }
+        /* 搜索下拉推荐列表 */
+        .search-suggest {
+            position: absolute;
+            top: 46px;
+            left: 0;
+            width: 280px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            z-index: 999;
+            display: none;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .search-suggest.show {
+            display: block;
+        }
+        .suggest-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .suggest-item:hover {
+            background-color: #f0f7ff;
+        }
+        /* 顶部分类栏 */
+        .tab-header {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-bottom: 40px;
+            align-items: center;
+        }
+        .tab-btn {
+            width: 190px;
+            height: 72px;
+            border: none;
+            border-radius: 14px;
+            font-size: 21px;
+            font-weight: 500;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+        .tab-btn.active {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.22);
+        }
+        /* 分类独立渐变配色 */
+        .tab-office {
+            background: linear-gradient(135deg, #ff9a56, #ff6b35);
+        }
+        .tab-address {
+            background: linear-gradient(135deg, #36d1dc, #5b86e5);
+        }
+        .tab-url {
+            background: linear-gradient(135deg, #56ab2f, #a8e063);
+        }
+        .tab-fun {
+            background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+        }
+        .tab-ai {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            background-size: 200% 200%;
+            animation: aiGradient 3s ease infinite;
+        }
+        @keyframes aiGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .tab-ai span {
+            background: linear-gradient(90deg,#fff,#e0f7ff,#fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(255,255,255,0.6);
+        }
+        .hidden-tab {
+            display: none;
+        }
+        /* 子板块小标题样式 */
+        .sub-title {
+            width: 100%;
+            text-align: left;
+            padding: 10px 16px;
+            background-color: #f3e8d9;
+            color: #783f27;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 10px;
+            margin: 20px 0 16px;
+        }
+        /* 内网外网小标签 */
+        .tag {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+        .tag-in {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .tag-out {
+            background: #d4edda;
+            color: #155724;
+        }
+        /* 内容容器 */
+        .content-box {
+            display: flex;
+            justify-content: center;
+        }
+        .tab-content {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 28px;
+            max-width: 1300px;
+            width: 100%;
+            padding: 0 20px;
+        }
+        .tab-content.show {
+            display: flex;
+        }
+        /* 工具按钮放大加宽 */
+        .link-btn {
+            padding: 22px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        /* 办公软件按钮色系 */
+        .office-link {
+            background: linear-gradient(135deg,#fff7f0,#ffe8dd);
+            color: #c2410c;
+            border:1px solid #ffd6c4;
+        }
+        .office-link:hover {
+            background: linear-gradient(135deg,#ffe8dd,#ffd6c4);
+        }
+        /* 办公地址按钮色系 */
+        .address-link {
+            background: linear-gradient(135deg,#edf7ff,#d6eaff);
+            color: #1d4ed8;
+            border:1px solid #b9d8ff;
+        }
+        .address-link:hover {
+            background: linear-gradient(135deg,#d6eaff,#b9d8ff);
+        }
+        /* 使用网址按钮色系 */
+        .url-link {
+            background: linear-gradient(135deg,#f0fdf4,#dcfce7);
+            color: #15803d;
+            border:1px solid #bbf7d0;
+        }
+        .url-link:hover {
+            background: linear-gradient(135deg,#dcfce7,#bbf7d0);
+        }
+        /* 休闲娱乐按钮色系 */
+        .fun-link {
+            background: linear-gradient(135deg,#faf5ff,#f3e8ff);
+            color: #7e22ce;
+            border:1px solid #e9d5ff;
+        }
+        .fun-link:hover {
+            background: linear-gradient(135deg,#f3e8ff,#e9d5ff);
+        }
+        /* AI分类按钮色系 */
+        .ai-link {
+            background: linear-gradient(135deg,#e6f7ff,#ccebff);
+            color: #0066cc;
+            border:1px solid #91caff;
+        }
+        .ai-link:hover {
+            background: linear-gradient(135deg,#ccebff,#91caff);
+        }
+        /* 搜索隐藏匹配项 */
+        .link-btn.hide-item {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- 点击跳转WPS官网 -->
-    <button class="wps-btn" onclick="window.open('https://www.wps.cn/','_blank')">WPS</button>
+    <!-- 右上角仅保留搜索，完全移除上锁/解锁区域 -->
+    <div class="top-right-area">
+        <div class="search-wrap">
+            <div class="search-main">
+                <input type="text" placeholder="搜索站点、描述.....自动跨标签定位" id="searchInput" onkeydown="enterSearch(event)" oninput="inputChange(this.value)">
+                <button onclick="searchTool()"><i class="fas fa-search"></i></button>
+            </div>
+            <!-- 搜索下拉推荐框 动态渲染 -->
+            <div class="search-suggest" id="suggestBox"></div>
+        </div>
+    </div>
+
+    <!-- 顶部分类导航 AI+永久最右侧 -->
+    <div class="tab-header">
+        <button class="tab-btn tab-office active" onclick="switchTab('office', this)">
+            <i class="fas fa-file-word"></i>办公软件
+        </button>
+        <button class="tab-btn tab-address" onclick="switchTab('address', this)">
+            <i class="fas fa-folder-open"></i>办公地址
+        </button>
+        <!-- 默认隐藏 -->
+        <button class="tab-btn tab-url hidden-tab" onclick="switchTab('url', this)">
+            <i class="fas fa-link"></i>使用网址
+        </button>
+        <button class="tab-btn tab-fun hidden-tab" onclick="switchTab('fun', this)">
+            <i class="fas fa-gamepad"></i>休闲娱乐
+        </button>
+        <!-- AI+固定最右侧，不受隐藏控制 -->
+        <button class="tab-btn tab-ai" onclick="switchTab('ai', this)">
+            <span><i class="fas fa-brain"></i>AI+</span>
+        </button>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="content-box">
+        <!-- 办公软件（已删除豆包） -->
+        <div id="office" class="tab-content show" data-type="office">
+            <div class="sub-title">日常办公</div>
+            <button class="link-btn office-link" data-name="微信  " onclick="window.open('https://weixin.qq.com/','_blank')">
+                <i class="fab fa-weixin"></i>微信&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="企业微信" onclick="window.open('https://work.weixin.qq.com/','_blank')">
+                <i class="fas fa-building"></i>企业微信
+            </button>
+            <button class="link-btn office-link" data-name="QQ   " onclick="window.open('https://im.qq.com/','_blank')">
+                <i class="fab fa-qq"></i>QQ&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="钉钉  " onclick="window.open('https://www.dingtalk.com/','_blank')">
+                <i class="fas fa-comments"></i>钉钉&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="腾讯会议" onclick="window.open('https://meeting.tencent.com/','_blank')">
+                <i class="fas fa-video"></i>腾讯会议
+            </button>
+            <button class="link-btn office-link" data-name="向日葵 " onclick="window.open('https://sunlogin.oray.com/','_blank')">
+                <i class="fas fa-desktop"></i>向日葵&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="Everything" onclick="window.open('https://www.voidtools.com/zh-cn/','_blank')">
+                <i class="fas fa-search"></i>Everything
+            </button>
+
+            <div class="sub-title">办公文档</div>
+            <button class="link-btn office-link" data-name="WPS   " onclick="window.open('https://www.wps.cn','_blank')">
+                <i class="fas fa-file-pdf"></i>WPS&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="腾讯文档" onclick="window.open('https://docs.qq.com/','_blank')">
+                <i class="fas fa-file-alt"></i>腾讯文档
+            </button>
+            <button class="link-btn office-link" data-name="金山文档" onclick="window.open('https://kdocs.cn/','_blank')">
+                <i class="fas fa-file-word"></i>金山文档
+            </button>
+
+            <div class="sub-title">浏览器</div>
+            <button class="link-btn office-link" data-name="360   " onclick="window.open('https://browser.360.cn/','_blank')">
+                <i class="fas fa-globe"></i>360&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="谷歌  " onclick="window.open('https://www.google.com/chrome/','_blank')">
+                <i class="fab fa-chrome"></i>谷歌&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="搜狗  " onclick="window.open('https://ie.sogou.com/','_blank')">
+                <i class="fas fa-globe"></i>搜狗&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="火狐  " onclick="window.open('https://www.firefox.com.cn/','_blank')">
+                <i class="fas fa-fire"></i>火狐&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="夸克  " onclick="window.open('https://quark.sm.cn/','_blank')">
+                <i class="fas fa-globe"></i>夸克&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="QQ浏览器" onclick="window.open('https://browser.qq.com/','_blank')">
+                <i class="fab fa-qq"></i>QQ浏览器
+            </button>
+
+            <div class="sub-title">其他</div>
+            <button class="link-btn office-link" data-name="影刀  " onclick="window.open('https://www.yingdao.com/','_blank')">
+                <i class="fas fa-robot"></i>影刀&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="优启通 " onclick="window.open('https://www.uqitong.com/','_blank')">
+                <i class="fas fa-usb"></i>优启通&nbsp;
+            </button>
+            <button class="link-btn office-link" data-name="迅雷  " onclick="window.open('https://www.xunlei.com/','_blank')">
+                <i class="fas fa-download"></i>迅雷&nbsp;&nbsp;&nbsp;
+            </button>
+        </div>
+
+        <!-- 办公地址 -->
+        <div id="address" class="tab-content" data-type="address">
+            <div class="sub-title">系统地址</div>
+            <button class="link-btn address-link" data-name="GDC内网" onclick="window.open('http://172.28.1.115/gdcenter/','_blank')">
+                <i class="fas fa-server"></i>GDC<span class="tag tag-in">内网</span>
+            </button>
+            <button class="link-btn address-link" data-name="GDC外网" onclick="window.open('http://www.sysu-pharm.com/gdcenter/','_blank')">
+                <i class="fas fa-server"></i>GDC<span class="tag tag-out">外网</span>
+            </button>
+            <button class="link-btn address-link" data-name="GDC2.0内网" onclick="window.open('http://172.28.1.54:9093/login','_blank')">
+                <i class="fas fa-server"></i>GDC2.0<span class="tag tag-in">内网</span>
+            </button>
+            <button class="link-btn address-link" data-name="GDC2.0外网" onclick="window.open('http://59.37.39.202:9093','_blank')">
+                <i class="fas fa-server"></i>GDC2.0<span class="tag tag-out">外网</span>
+            </button>
+            <button class="link-btn address-link" data-name="员工门户内网" onclick="window.open('http://10.1.17.101','_blank')">
+                <i class="fas fa-users"></i>员工门户<span class="tag tag-in">内网</span>
+            </button>
+            <button class="link-btn address-link" data-name="员工门户外网" onclick="window.open('https://idm.shaphar.com','_blank')">
+                <i class="fas fa-users"></i>员工门户<span class="tag tag-out">外网</span>
+            </button>
+            <button class="link-btn address-link" data-name="MA    " onclick="window.open('https://wmprod.sygd.shaphar.com:11001/login.jsp','_blank')">
+                <i class="fas fa-cogs"></i>MA&nbsp;&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn address-link" data-name="企业邮箱" onclick="window.open('https://exmail.qq.com/cgi-bin/loginpage?s=session_timeout&from=&r=a42ee85f354e6c27930ecd0a70f87df1','_blank')">
+                <i class="fas fa-envelope"></i>企业邮箱
+            </button>
+            <button class="link-btn address-link" data-name="打印管理" onclick="window.open('https://172.28.1.72:8085/cpms/#/login','_blank')">
+                <i class="fas fa-print"></i>打印管理
+            </button>
+            <button class="link-btn address-link" data-name="OMS系统" onclick="window.open('http://196.6.27.121/oms/coframe/auth/skin5/login.jsp','_blank')">
+                <i class="fas fa-database"></i>OMS系统
+            </button>
+            <button class="link-btn address-link" data-name="电采平台" onclick="window.open('https://sygdmall.shaphar.com/','_blank')">
+                <i class="fas fa-shopping-cart"></i>电采平台
+            </button>
+            <button class="link-btn address-link" data-name="奇安信" onclick="window.open('https://172.28.1.132:19345/about/download','_blank')">
+                <i class="fas fa-shield-alt"></i>奇安信
+            </button>
+
+            <div class="sub-title">运维工单</div>
+            <button class="link-btn address-link" data-name="广东工单" onclick="window.open('https://docs.qq.com/sheet/DSG1SZ3JMcGNMc3dE','_blank')">
+                <i class="fas fa-ticket-alt"></i>广东工单
+            </button>
+            <button class="link-btn address-link" data-name="子公司工单" onclick="window.open('https://docs.qq.com/sheet/DSFBLY3JnUFZTdEFi','_blank')">
+                <i class="fas fa-ticket-alt"></i>子公司工单
+            </button>
+            <button class="link-btn address-link" data-name="设备借用" onclick="window.open('https://docs.qq.com/sheet/DSHVnRnp2Z0hranFX','_blank')">
+                <i class="fas fa-desktop"></i>设备借用
+            </button>
+            <button class="link-btn address-link" data-name="OMS工单" onclick="window.open('https://docs.qq.com/sheet/DR2hTTWlCVklZd0pl','_blank')">
+                <i class="fas fa-ticket-alt"></i>OMS工单
+            </button>
+            <button class="link-btn address-link" data-name="运维工具" onclick="window.open('https://www.kdocs.cn/l/ciS2rsxaPkUV','_blank')">
+                <i class="fas fa-wrench"></i>运维工具
+            </button>
+
+            <div class="sub-title">资产</div>
+            <button class="link-btn address-link" data-name="闲置资产" onclick="window.open('https://docs.qq.com/sheet/DSG1GbERnakZhVkht','_blank')">
+                <i class="fas fa-box-open"></i>闲置资产
+            </button>
+            <button class="link-btn address-link" data-name="资产台帐" onclick="window.open('https://www.kdocs.cn/l/cseqEFnegdT5','_blank')">
+                <i class="fas fa-book"></i>资产台帐
+            </button>
+            <button class="link-btn address-link" data-name="文具管理" onclick="window.open('https://www.kdocs.cn/l/csnXYkeFfw8I','_blank')">
+                <i class="fas fa-pen"></i>文具管理
+            </button>
+
+            <div class="sub-title">我的</div>
+            <button class="link-btn address-link" data-name="付款台账" onclick="window.open('https://docs.qq.com/sheet/DSEFxbmhZUFdTTkpn','_blank')">
+                <i class="fas fa-money-bill-wave"></i>付款台账
+            </button>
+
+            <div class="sub-title">模板</div>
+            <button class="link-btn address-link" data-name="加班模板" onclick="window.open('https://docs.qq.com/sheet/DSEdiakRVc25XaFhv','_blank')">
+                <i class="fas fa-file-invoice"></i>加班模板
+            </button>
+        </div>
+
+        <!-- 使用网址（默认隐藏） -->
+        <div id="url" class="tab-content" data-type="url">
+            <button class="link-btn url-link" data-name="github " onclick="window.open('https://github.com/','_blank')">
+                <i class="fab fa-github"></i>github&nbsp;
+            </button>
+            <button class="link-btn url-link" data-name="中小型客车" onclick="window.open('https://apply.jtj.gz.gov.cn/apply/','_blank')">
+                <i class="fas fa-bus"></i>中小型客车
+            </button>
+            <button class="link-btn url-link" data-name="软考  " onclick="window.open('https://www.ruankao.org.cn/','_blank')">
+                <i class="fas fa-graduation-cap"></i>软考&nbsp;&nbsp;&nbsp;
+            </button>
+        </div>
+
+        <!-- 休闲娱乐（默认隐藏） -->
+        <div id="fun" class="tab-content" data-type="fun">
+            <div class="sub-title">影音视频</div>
+            <button class="link-btn fun-link" data-name="抖音网页" onclick="window.open('https://www.douyin.com','_blank')">
+                <i class="fas fa-music"></i>抖音网页
+            </button>
+            <button class="link-btn fun-link" data-name="哔哩哔哩" onclick="window.open('https://www.bilibili.com','_blank')">
+                <i class="fas fa-tv"></i>哔哩哔哩
+            </button>
+            <button class="link-btn fun-link" data-name="腾讯视频" onclick="window.open('https://v.qq.com/','_blank')">
+                <i class="fas fa-film"></i>腾讯视频
+            </button>
+            <button class="link-btn fun-link" data-name="优酷视频" onclick="window.open('https://youku.com/','_blank')">
+                <i class="fas fa-video"></i>优酷视频
+            </button>
+            <button class="link-btn fun-link" data-name="爱奇艺" onclick="window.open('https://www.iqiyi.com/','_blank')">
+                <i class="fas fa-video"></i>爱奇艺&nbsp;&nbsp;
+            </button>
+
+            <div class="sub-title">音乐听歌</div>
+            <button class="link-btn fun-link" data-name="QQ音乐 " onclick="window.open('https://y.qq.com/','_blank')">
+                <i class="fas fa-music"></i>QQ音乐&nbsp;
+            </button>
+            <button class="link-btn fun-link" data-name="酷狗  " onclick="window.open('https://www.kugou.com/','_blank')">
+                <i class="fas fa-music"></i>酷狗&nbsp;&nbsp;&nbsp;
+            </button>
+
+            <div class="sub-title">社交资讯</div>
+            <button class="link-btn fun-link" data-name="微博  " onclick="window.open('https://weibo.com/','_blank')">
+                <i class="fab fa-weibo"></i>微博&nbsp;&nbsp;&nbsp;
+            </button>
+
+            <div class="sub-title">购物二手</div>
+            <button class="link-btn fun-link" data-name="京东  " onclick="window.open('https://www.jd.com/','_blank')">
+                <i class="fas fa-shopping-cart"></i>京东&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn fun-link" data-name="淘宝  " onclick="window.open('https://taobao.com/','_blank')">
+                <i class="fas fa-store"></i>淘宝&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn fun-link" data-name="拼多多" onclick="window.open('https://www.pinduoduo.com/','_blank')">
+                <i class="fas fa-box"></i>拼多多
+            </button>
+            <button class="link-btn fun-link" data-name="闲鱼  " onclick="window.open('https://2.taobao.com/','_blank')">
+                <i class="fas fa-recycle"></i>闲鱼&nbsp;&nbsp;&nbsp;
+            </button>
+
+            <div class="sub-title">生活出行</div>
+            <button class="link-btn fun-link" data-name="美团  " onclick="window.open('https://www.meituan.com/','_blank')">
+                <i class="fas fa-utensils"></i>美团&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn fun-link" data-name="高德地图" onclick="window.open('https://amap.com/','_blank')">
+                <i class="fas fa-map-marker-alt"></i>高德地图
+            </button>
+        </div>
+
+        <!-- AI+ 单独小分类 -->
+        <div id="ai" class="tab-content" data-type="ai">
+            <div class="sub-title">AI+</div>
+            <button class="link-btn ai-link" data-name="豆包AI" onclick="window.open('https://www.doubao.com','_blank')">
+                <i class="fas fa-brain"></i>豆包AI
+            </button>
+            <button class="link-btn ai-link" data-name="文心一言" onclick="window.open('https://chat.baidu.com/?enter_type=yiyan_site','_blank')">
+                <i class="fas fa-feather-alt"></i>文心一言
+            </button>
+            <button class="link-btn ai-link" data-name="通义千问" onclick="window.open('https://tongyi.aliyun.com/','_blank')">
+                <i class="fas fa-cloud"></i>通义千问
+            </button>
+            <button class="link-btn ai-link" data-name="DeepSeek" onclick="window.open('https://www.deepseek.com/','_blank')">
+                <i class="fas fa-microchip"></i>DeepSeek
+            </button>
+            <button class="link-btn ai-link" data-name="Kimi  " onclick="window.open('https://kimi.moonshot.cn/','_blank')">
+                <i class="fas fa-comment-dots"></i>Kimi&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn ai-link" data-name="GPT    " onclick="window.open('https://chat.openai.com/','_blank')">
+                <i class="fas fa-robot"></i>GPT&nbsp;&nbsp;&nbsp;&nbsp;
+            </button>
+            <button class="link-btn ai-link" data-name="智谱清言" onclick="window.open('https://www.zhipuai.cn/','_blank')">
+                <i class="fas fa-lightbulb"></i>智谱清言
+            </button>
+            <button class="link-btn ai-link" data-name="讯飞星火" onclick="window.open('https://xinghuo.xfyun.cn/','_blank')">
+                <i class="fas fa-microphone"></i>讯飞星火
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const suggestBox = document.getElementById('suggestBox');
+        const searchInput = document.getElementById('searchInput');
+        // 收集全部按钮名称作为联想数据源
+        const allToolNames = Array.from(document.querySelectorAll('.link-btn')).map(item=>item.dataset.name.trim());
+        // 标记隐藏分类显示状态，初始隐藏
+        let extraTabShow = false;
+
+        // 输入框实时输入（仅搜索下拉，不控制分类）
+        function inputChange(val) {
+            const txt = val.trim();
+            suggestBox.innerHTML = "";
+            if(txt.length === 0){
+                suggestBox.classList.remove('show');
+                return;
+            }
+            const matchList = allToolNames.filter(name=>name.toLowerCase().includes(txt.toLowerCase()));
+            if(matchList.length > 0){
+                matchList.forEach(name=>{
+                    const div = document.createElement('div');
+                    div.className = 'suggest-item';
+                    div.innerText = name;
+                    div.onclick = ()=>selectSuggest(name);
+                    suggestBox.appendChild(div);
+                })
+                suggestBox.classList.add('show');
+            }else{
+                suggestBox.classList.remove('show');
+            }
+        }
+        // 点击下拉选项回填搜索并执行搜索
+        function selectSuggest(name) {
+            searchInput.value = name;
+            suggestBox.classList.remove('show');
+            searchTool();
+        }
+
+        // 切换主内容板块
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(item => item.classList.remove('show'));
+            document.getElementById(id).classList.add('show');
+            resetAllBtnShow();
+        }
+
+        // 重置搜索过滤，全部按钮可见
+        function resetAllBtnShow(){
+            document.querySelectorAll('.link-btn').forEach(btn=>{
+                btn.classList.remove('hide-item');
+            })
+        }
+
+        // 回车事件：666切换隐藏分类显隐；其它执行搜索
+        function enterSearch(e){
+            if(e.key === 'Enter'){
+                const val = searchInput.value.trim();
+                if(val === '666'){
+                    // 切换使用网址、休闲娱乐导航按钮显示/隐藏
+                    extraTabShow = !extraTabShow;
+                    const urlBtn = document.querySelector('.tab-url');
+                    const funBtn = document.querySelector('.tab-fun');
+                    if(extraTabShow){
+                        urlBtn.classList.remove('hidden-tab');
+                        funBtn.classList.remove('hidden-tab');
+                    }else{
+                        urlBtn.classList.add('hidden-tab');
+                        funBtn.classList.add('hidden-tab');
+                    }
+                    suggestBox.classList.remove('show');
+                    return;
+                }
+                // 普通搜索逻辑
+                suggestBox.classList.remove('show');
+                searchTool();
+            }
+        }
+        // 关键词模糊搜索，跨板块匹配
+        function searchTool() {
+            const keyword = searchInput.value.trim().toLowerCase();
+            suggestBox.classList.remove('show');
+            if(!keyword){
+                resetAllBtnShow();
+                return;
+            }
+            resetAllBtnShow();
+            let hasMatch = false;
+            let matchTabId = "";
+            const allBtns = document.querySelectorAll('.link-btn');
+            allBtns.forEach(btn=>{
+                const name = btn.dataset.name.toLowerCase();
+                const tab = btn.closest('.tab-content');
+                const tabId = tab.id;
+                if(!name.includes(keyword)){
+                    btn.classList.add('hide-item');
+                }else{
+                    hasMatch = true;
+                    matchTabId = tab.id;
+                }
+            })
+            if(!hasMatch){
+                alert("未找到匹配工具");
+                resetAllBtnShow();
+                return;
+            }
+            // 只切换到匹配板块
+            document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('show'));
+            document.getElementById(matchTabId).classList.add('show');
+            // 自动激活对应顶部标签
+            const tabMap = {
+                office: '.tab-office',
+                address: '.tab-address',
+                url: '.tab-url',
+                fun: '.tab-fun',
+                ai: '.tab-ai'
+            };
+            const activeBtn = document.querySelector(tabMap[matchTabId]);
+            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            activeBtn.classList.add('active');
+        }
+        // 点击空白关闭搜索下拉
+        document.addEventListener('click',(e)=>{
+            if(!searchInput.contains(e.target) && !suggestBox.contains(e.target)){
+                suggestBox.classList.remove('show');
+            }
+        })
+    </script>
 </body>
 </html>
