@@ -1,670 +1,910 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>工具导航页</title>
-    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft Yahei", "PingFang SC", sans-serif;
-        }
-        body {
-            background-color: #ffffff;
-            min-height: 100vh;
-            padding: 60px 20px;
-            position: relative;
-        }
-        /* 右上角搜索区域容器 */
-        .top-right-area {
-            position: absolute;
-            top: 26px;
-            right: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 12px;
-        }
-        /* 搜索外层容器，用于下拉定位 */
-        .search-wrap {
-            position: relative;
-        }
-        .search-main {
-            display: flex;
-            gap: 8px;
-        }
-        .search-main input {
-            padding: 10px 16px;
-            border: 1px solid #ccd6e0;
-            border-radius: 30px;
-            font-size: 15px;
-            width: 280px;
-            outline: none;
-            transition: 0.2s;
-        }
-        .search-main input:focus {
-            border-color: #409eff;
-            box-shadow: 0 0 0 3px rgba(64,159,255,0.15);
-        }
-        .search-main button {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: #409eff;
-            color: #fff;
-            cursor: pointer;
-        }
-        /* 搜索下拉推荐列表 */
-        .search-suggest {
-            position: absolute;
-            top: 46px;
-            left: 0;
-            width: 280px;
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-            z-index: 999;
-            display: none;
-            max-height: 220px;
-            overflow-y: auto;
-        }
-        .search-suggest.show {
-            display: block;
-        }
-        .suggest-item {
-            padding: 10px 16px;
-            cursor: pointer;
-            font-size: 15px;
-        }
-        .suggest-item:hover {
-            background-color: #f0f7ff;
-        }
-        /* 顶部分类栏 */
-        .tab-header {
-            display: flex;
-            justify-content: center;
-            gap: 18px;
-            margin-bottom: 40px;
-            align-items: center;
-        }
-        .tab-btn {
-            width: 190px;
-            height: 72px;
-            border: none;
-            border-radius: 14px;
-            font-size: 21px;
-            font-weight: 500;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .tab-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-        }
-        .tab-btn.active {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.22);
-        }
-        /* 分类独立渐变配色 */
-        .tab-office {
-            background: linear-gradient(135deg, #ff9a56, #ff6b35);
-        }
-        .tab-address {
-            background: linear-gradient(135deg, #36d1dc, #5b86e5);
-        }
-        .tab-url {
-            background: linear-gradient(135deg, #56ab2f, #a8e063);
-        }
-        .tab-fun {
-            background: linear-gradient(135deg, #a18cd1, #fbc2eb);
-        }
-        .tab-ai {
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
-            background-size: 200% 200%;
-            animation: aiGradient 3s ease infinite;
-        }
-        @keyframes aiGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .tab-ai span {
-            background: linear-gradient(90deg,#fff,#e0f7ff,#fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 900;
-            letter-spacing: 2px;
-            text-shadow: 0 0 8px rgba(255,255,255,0.6);
-        }
-        .hidden-tab {
-            display: none;
-        }
-        /* 子板块小标题样式 */
-        .sub-title {
-            width: 100%;
-            text-align: left;
-            padding: 10px 16px;
-            background-color: #f3e8d9;
-            color: #783f27;
-            font-size: 20px;
-            font-weight: 600;
-            border-radius: 10px;
-            margin: 20px 0 16px;
-        }
-        /* 内网外网小标签 */
-        .tag {
-            font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 6px;
-        }
-        .tag-in {
-            background: #cce5ff;
-            color: #004085;
-        }
-        .tag-out {
-            background: #d4edda;
-            color: #155724;
-        }
-        /* 内容容器 */
-        .content-box {
-            display: flex;
-            justify-content: center;
-        }
-        .tab-content {
-            display: none;
-            flex-wrap: wrap;
-            justify-content: flex-start;
-            gap: 28px;
-            max-width: 1300px;
-            width: 100%;
-            padding: 0 20px;
-        }
-        .tab-content.show {
-            display: flex;
-        }
-        /* 工具按钮放大加宽 */
-        .link-btn {
-            padding: 22px 24px;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 180px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        /* 办公软件按钮色系 */
-        .office-link {
-            background: linear-gradient(135deg,#fff7f0,#ffe8dd);
-            color: #c2410c;
-            border:1px solid #ffd6c4;
-        }
-        .office-link:hover {
-            background: linear-gradient(135deg,#ffe8dd,#ffd6c4);
-        }
-        /* 办公地址按钮色系 */
-        .address-link {
-            background: linear-gradient(135deg,#edf7ff,#d6eaff);
-            color: #1d4ed8;
-            border:1px solid #b9d8ff;
-        }
-        .address-link:hover {
-            background: linear-gradient(135deg,#d6eaff,#b9d8ff);
-        }
-        /* 使用网址按钮色系 */
-        .url-link {
-            background: linear-gradient(135deg,#f0fdf4,#dcfce7);
-            color: #15803d;
-            border:1px solid #bbf7d0;
-        }
-        .url-link:hover {
-            background: linear-gradient(135deg,#dcfce7,#bbf7d0);
-        }
-        /* 休闲娱乐按钮色系 */
-        .fun-link {
-            background: linear-gradient(135deg,#faf5ff,#f3e8ff);
-            color: #7e22ce;
-            border:1px solid #e9d5ff;
-        }
-        .fun-link:hover {
-            background: linear-gradient(135deg,#f3e8ff,#e9d5ff);
-        }
-        /* AI分类按钮色系 */
-        .ai-link {
-            background: linear-gradient(135deg,#e6f7ff,#ccebff);
-            color: #0066cc;
-            border:1px solid #91caff;
-        }
-        .ai-link:hover {
-            background: linear-gradient(135deg,#ccebff,#91caff);
-        }
-        /* 搜索隐藏匹配项 */
-        .link-btn.hide-item {
-            display: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>工具导航页</title>
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft Yahei","PingFang SC",sans-serif;}
+body{background:#fff;min-height:100vh;padding-top:80px;padding-left:20px;padding-right:20px;position:relative;}
+.user-bar{position:fixed;top:10px;left:20px;display:flex;align-items:center;gap:16px;z-index:99;}
+.user-name{font-size:16px;color:#333;}
+.logout-btn{padding:6px 12px;background:#f44336;color:#fff;border:none;border-radius:6px;cursor:pointer;}
+.top-right-area{position:absolute;top:10px;right:40px;display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
+.search-wrap{position:relative;}
+.search-main{display:flex;gap:8px;}
+.search-main input{padding:10px 16px;border:1px solid #ccd6e0;border-radius:30px;font-size:15px;width:280px;outline:none;}
+.search-main input:focus{border-color:#409eff;box-shadow:0 0 0 3px rgba(64,159,255,0.15);}
+.search-main button{width:40px;height:40px;border-radius:50%;border:none;background:#409eff;color:#fff;cursor:pointer;}
+.search-suggest{position:absolute;top:46px;left:0;width:280px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:999;max-height:220px;overflow-y:auto;display:none;}
+.search-suggest.show{display:block;}
+.suggest-item{padding:10px 16px;cursor:pointer;font-size:15px;}
+.suggest-item:hover{background:#f0f7ff;}
+.tab-header{display:flex;justify-content:center;gap:18px;margin-bottom:40px;align-items:center;z-index:99;position:relative;}
+.tab-btn{width:190px;height:72px;border:none;border-radius:14px;font-size:21px;font-weight:500;color:#fff;cursor:pointer;transition:all 0.25s ease;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;gap:10px;}
+.tab-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.15);}
+.tab-btn.active{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.22);}
+.tab-office{background:linear-gradient(135deg,#ff9a56,#ff6b35);}
+.tab-address{background:linear-gradient(135deg,#36d1dc,#5b86e5);}
+.tab-url{background:linear-gradient(135deg,#56ab2f,#a8e063);}
+.tab-fun{background:linear-gradient(135deg,#a18cd1,#fbc2eb);}
+.tab-ai{background:linear-gradient(135deg,#00f2fe,#4facfe);background-size:200% 200%;animation:aiGradient 3s ease infinite;}
+@keyframes aiGradient{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+.tab-ai span{background:linear-gradient(90deg,#fff,#e0f7ff,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;letter-spacing:2px;}
+.hidden-tab{display:none;}
+.sub-title{width:100%;text-align:left;padding:10px 16px;background:#f3e8d9;color:#783f27;font-size:20px;font-weight:600;border-radius:10px;margin:20px 0 16px;cursor:move;}
+.content-box{display:flex;justify-content:center;}
+.tab-content{display:none;flex-wrap:wrap;justify-content:flex-start;gap:28px;max-width:1300px;width:100%;padding:0 20px;}
+.tab-content.show{display:flex;}
+.small-group{width:100%;margin-bottom:24px;}
+.small-group.employee-hide{display:none !important;}
+.btn-wrap{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:28px;width:100%;min-height:40px;}
+.link-btn{padding:22px 16px;border:none;border-radius:12px;font-size:18px;cursor:pointer;transition:0.2s;width:180px;display:flex;align-items:center;justify-content:center;position:relative;gap:8px;}
+.btn-text{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;}
+.tag-vertical{font-size:11px;padding:3px 4px;border-radius:3px;writing-mode:vertical-lr;text-orientation:upright;height:42px;display:flex;align-items:center;justify-content:center;position:absolute;right:8px;top:50%;transform:translateY(-50%);}
+.tag-in{background:#cce5ff;color:#004085;}
+.tag-out{background:#d4edda;color:#155724;}
+.office-link{background:linear-gradient(135deg,#fff7f0,#ffe8dd);color:#c2410c;border:1px solid #ffd6c4;}
+.address-link{background:linear-gradient(135deg,#edf7ff,#d6eaff);color:#1d4ed8;border:1px solid #b9d8ff;}
+.url-link{background:linear-gradient(135deg,#f0fdf4,#dcfce7);color:#15803d;border:1px solid #bbf7d0;}
+.fun-link{background:linear-gradient(135deg,#faf5ff,#f3e8ff);color:#7e22ce;border:1px solid #e9d5ff;}
+.ai-link{background:linear-gradient(135deg,#e6f7ff,#ccebff);color:#0066cc;border:1px solid #91caff;}
+.link-btn.hide-item{display:none;}
+.link-btn.highlight{background:linear-gradient(135deg,#fff3cd,#ffe8a3)!important;border-color:#ffc107!important;color:#856404!important;}
+.admin-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;}
+.admin-modal.show{display:flex;}
+.modal-wrap{background:#fff;width:660px;padding:30px;border-radius:16px;max-height:90vh;overflow-y:auto;}
+.modal-title{text-align:center;font-size:24px;margin-bottom:24px;color:#333;}
+.modal-sub{font-size:17px;margin:20px 0 10px;color:#555;border-top:1px solid #eee;padding-top:16px;}
+.admin-item{margin-bottom:18px;}
+.admin-item label{display:block;font-size:15px;margin-bottom:6px;color:#444;}
+.admin-item input,.admin-item select{width:100%;padding:11px 14px;border:1px solid #ccd6e0;border-radius:9px;font-size:15px;outline:none;}
+.admin-item select:disabled{background:#f5f5f5;cursor:not-allowed;}
+.btn-group{display:flex;gap:14px;margin-top:26px;}
+.modal-btn{flex:1;padding:13px;border:none;border-radius:9px;font-size:16px;cursor:pointer;}
+.btn-primary{background:#409eff;color:#fff;}
+.btn-danger{background:#f44336;color:#fff;}
+.btn-gray{background:#999;color:#fff;}
+.btn-block{width:100%;margin:8px 0;padding:14px;font-size:17px;}
+.drag-over{outline:2px dashed #409eff !important;}
+#userListModal .modal-wrap{width:760px;}
+.login-only-page{background:#fff;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;position:fixed;top:0;left:0;z-index:99999;}
+.login-only-modal{width:400px;padding:40px;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.1);background:#fff;}
+</style>
 </head>
 <body>
-    <!-- 右上角仅保留搜索，完全移除上锁/解锁区域 -->
-    <div class="top-right-area">
-        <div class="search-wrap">
-            <div class="search-main">
-                <input type="text" placeholder="搜索站点、描述.....自动跨标签定位" id="searchInput" onkeydown="enterSearch(event)" oninput="inputChange(this.value)">
-                <button onclick="searchTool()"><i class="fas fa-search"></i></button>
-            </div>
-            <!-- 搜索下拉推荐框 动态渲染 -->
-            <div class="search-suggest" id="suggestBox"></div>
-        </div>
-    </div>
+<div class="user-bar" id="userBar" style="display:none;">
+    <span class="user-name">当前登录：<span id="showUserName"></span></span>
+    <button class="logout-btn" onclick="logout()">退出登录</button>
+</div>
 
-    <!-- 顶部分类导航 AI+永久最右侧 -->
-    <div class="tab-header">
-        <button class="tab-btn tab-office active" onclick="switchTab('office', this)">
-            <i class="fas fa-file-word"></i>办公软件
-        </button>
-        <button class="tab-btn tab-address" onclick="switchTab('address', this)">
-            <i class="fas fa-folder-open"></i>办公地址
-        </button>
-        <!-- 默认隐藏 -->
-        <button class="tab-btn tab-url hidden-tab" onclick="switchTab('url', this)">
-            <i class="fas fa-link"></i>使用网址
-        </button>
-        <button class="tab-btn tab-fun hidden-tab" onclick="switchTab('fun', this)">
-            <i class="fas fa-gamepad"></i>休闲娱乐
-        </button>
-        <!-- AI+固定最右侧，不受隐藏控制 -->
-        <button class="tab-btn tab-ai" onclick="switchTab('ai', this)">
-            <span><i class="fas fa-brain"></i>AI+</span>
-        </button>
-    </div>
+<div class="top-right-area">
+<div class="search-wrap">
+<div class="search-main">
+<input type="text" placeholder="搜索站点" id="searchInput" onkeydown="enterSearchEvent(event)" oninput="inputChangeSearch(this.value)">
+<button onclick="runSearch()"><i class="fas fa-search"></i></button>
+</div>
+<div class="search-suggest" id="suggestBox"></div>
+</div>
+</div>
 
-    <!-- 内容区域 -->
-    <div class="content-box">
-        <!-- 办公软件（已删除豆包） -->
-        <div id="office" class="tab-content show" data-type="office">
-            <div class="sub-title">日常办公</div>
-            <button class="link-btn office-link" data-name="微信  " onclick="window.open('https://weixin.qq.com/','_blank')">
-                <i class="fab fa-weixin"></i>微信&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="企业微信" onclick="window.open('https://work.weixin.qq.com/','_blank')">
-                <i class="fas fa-building"></i>企业微信
-            </button>
-            <button class="link-btn office-link" data-name="QQ   " onclick="window.open('https://im.qq.com/','_blank')">
-                <i class="fab fa-qq"></i>QQ&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="钉钉  " onclick="window.open('https://www.dingtalk.com/','_blank')">
-                <i class="fas fa-comments"></i>钉钉&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="腾讯会议" onclick="window.open('https://meeting.tencent.com/','_blank')">
-                <i class="fas fa-video"></i>腾讯会议
-            </button>
-            <button class="link-btn office-link" data-name="向日葵 " onclick="window.open('https://sunlogin.oray.com/','_blank')">
-                <i class="fas fa-desktop"></i>向日葵&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="Everything" onclick="window.open('https://www.voidtools.com/zh-cn/','_blank')">
-                <i class="fas fa-search"></i>Everything
-            </button>
+<div class="tab-header" id="tabWrap">
+<button class="tab-btn tab-office active" data-big="办公软件" onclick="switchTab('office',this)"><i class="fas fa-file-word"></i>办公软件</button>
+<button class="tab-btn tab-address" data-big="办公地址" onclick="switchTab('address',this)"><i class="fas fa-folder-open"></i>办公地址</button>
+<button class="tab-btn tab-url hidden-tab" data-big="使用网址" onclick="switchTab('url',this)"><i class="fas fa-link"></i>使用网址</button>
+<button class="tab-btn tab-fun hidden-tab" data-big="休闲娱乐" onclick="switchTab('fun',this)"><i class="fas fa-gamepad"></i>休闲娱乐</button>
+<button class="tab-btn tab-ai" data-big="AI+" onclick="switchTab('ai',this)"><span><i class="fas fa-brain"></i>AI+</span></button>
+</div>
 
-            <div class="sub-title">办公文档</div>
-            <button class="link-btn office-link" data-name="WPS   " onclick="window.open('https://www.wps.cn','_blank')">
-                <i class="fas fa-file-pdf"></i>WPS&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="腾讯文档" onclick="window.open('https://docs.qq.com/','_blank')">
-                <i class="fas fa-file-alt"></i>腾讯文档
-            </button>
-            <button class="link-btn office-link" data-name="金山文档" onclick="window.open('https://kdocs.cn/','_blank')">
-                <i class="fas fa-file-word"></i>金山文档
-            </button>
+<div class="content-box" id="mainPage">
+<div id="office" class="tab-content show" data-tabid="office"></div>
+<div id="address" class="tab-content" data-tabid="address"></div>
+<div id="url" class="tab-content" data-tabid="url"></div>
+<div id="fun" class="tab-content" data-tabid="fun"></div>
+<div id="ai" class="tab-content" data-tabid="ai"></div>
+</div>
 
-            <div class="sub-title">浏览器</div>
-            <button class="link-btn office-link" data-name="360   " onclick="window.open('https://browser.360.cn/','_blank')">
-                <i class="fas fa-globe"></i>360&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="谷歌  " onclick="window.open('https://www.google.com/chrome/','_blank')">
-                <i class="fab fa-chrome"></i>谷歌&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="搜狗  " onclick="window.open('https://ie.sogou.com/','_blank')">
-                <i class="fas fa-globe"></i>搜狗&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="火狐  " onclick="window.open('https://www.firefox.com.cn/','_blank')">
-                <i class="fas fa-fire"></i>火狐&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="夸克  " onclick="window.open('https://quark.sm.cn/','_blank')">
-                <i class="fas fa-globe"></i>夸克&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="QQ浏览器" onclick="window.open('https://browser.qq.com/','_blank')">
-                <i class="fab fa-qq"></i>QQ浏览器
-            </button>
+<!-- 登录弹窗 -->
+<div class="admin-modal" id="loginModal">
+<div class="modal-wrap">
+<h2 class="modal-title">系统登录</h2>
+<div class="admin-item">
+<label>账号</label>
+<input id="loginAcc" placeholder="请输入账号">
+</div>
+<div class="admin-item">
+<label>密码</label>
+<input type="password" id="loginPwd" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()">
+</div>
+<div class="btn-group">
+<button class="modal-btn btn-primary" onclick="doLogin()">登录</button>
+</div>
+</div>
+</div>
 
-            <div class="sub-title">其他</div>
-            <button class="link-btn office-link" data-name="影刀  " onclick="window.open('https://www.yingdao.com/','_blank')">
-                <i class="fas fa-robot"></i>影刀&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="优启通 " onclick="window.open('https://www.uqitong.com/','_blank')">
-                <i class="fas fa-usb"></i>优启通&nbsp;
-            </button>
-            <button class="link-btn office-link" data-name="迅雷  " onclick="window.open('https://www.xunlei.com/','_blank')">
-                <i class="fas fa-download"></i>迅雷&nbsp;&nbsp;&nbsp;
-            </button>
-        </div>
+<!-- 链接管理弹窗 -->
+<div class="admin-modal" id="menuModal">
+<div class="modal-wrap">
+<h2 class="modal-title">链接后台管理</h2>
+<button class="modal-btn btn-primary btn-block" onclick="switchModal('add')">新增链接</button>
+<button class="modal-btn btn-primary btn-block" onclick="switchModal('edit')">修改链接</button>
+<button class="modal-btn btn-danger btn-block" onclick="switchModal('del')">删除链接</button>
+<button class="modal-btn btn-gray btn-block" onclick="closeAllModal()">关闭</button>
+</div>
+</div>
 
-        <!-- 办公地址 -->
-        <div id="address" class="tab-content" data-type="address">
-            <div class="sub-title">系统地址</div>
-            <button class="link-btn address-link" data-name="GDC内网" onclick="window.open('http://172.28.1.115/gdcenter/','_blank')">
-                <i class="fas fa-server"></i>GDC<span class="tag tag-in">内网</span>
-            </button>
-            <button class="link-btn address-link" data-name="GDC外网" onclick="window.open('http://www.sysu-pharm.com/gdcenter/','_blank')">
-                <i class="fas fa-server"></i>GDC<span class="tag tag-out">外网</span>
-            </button>
-            <button class="link-btn address-link" data-name="GDC2.0内网" onclick="window.open('http://172.28.1.54:9093/login','_blank')">
-                <i class="fas fa-server"></i>GDC2.0<span class="tag tag-in">内网</span>
-            </button>
-            <button class="link-btn address-link" data-name="GDC2.0外网" onclick="window.open('http://59.37.39.202:9093','_blank')">
-                <i class="fas fa-server"></i>GDC2.0<span class="tag tag-out">外网</span>
-            </button>
-            <button class="link-btn address-link" data-name="员工门户内网" onclick="window.open('http://10.1.17.101','_blank')">
-                <i class="fas fa-users"></i>员工门户<span class="tag tag-in">内网</span>
-            </button>
-            <button class="link-btn address-link" data-name="员工门户外网" onclick="window.open('https://idm.shaphar.com','_blank')">
-                <i class="fas fa-users"></i>员工门户<span class="tag tag-out">外网</span>
-            </button>
-            <button class="link-btn address-link" data-name="MA    " onclick="window.open('https://wmprod.sygd.shaphar.com:11001/login.jsp','_blank')">
-                <i class="fas fa-cogs"></i>MA&nbsp;&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn address-link" data-name="企业邮箱" onclick="window.open('https://exmail.qq.com/cgi-bin/loginpage?s=session_timeout&from=&r=a42ee85f354e6c27930ecd0a70f87df1','_blank')">
-                <i class="fas fa-envelope"></i>企业邮箱
-            </button>
-            <button class="link-btn address-link" data-name="打印管理" onclick="window.open('https://172.28.1.72:8085/cpms/#/login','_blank')">
-                <i class="fas fa-print"></i>打印管理
-            </button>
-            <button class="link-btn address-link" data-name="OMS系统" onclick="window.open('http://196.6.27.121/oms/coframe/auth/skin5/login.jsp','_blank')">
-                <i class="fas fa-database"></i>OMS系统
-            </button>
-            <button class="link-btn address-link" data-name="电采平台" onclick="window.open('https://sygdmall.shaphar.com/','_blank')">
-                <i class="fas fa-shopping-cart"></i>电采平台
-            </button>
-            <button class="link-btn address-link" data-name="奇安信" onclick="window.open('https://172.28.1.132:19345/about/download','_blank')">
-                <i class="fas fa-shield-alt"></i>奇安信
-            </button>
+<!-- 账户管理弹窗 -->
+<div class="admin-modal" id="userManageModal">
+<div class="modal-wrap">
+<h2 class="modal-title">账户管理</h2>
+<button class="modal-btn btn-primary btn-block" onclick="switchModal('userAdd')">新增账户</button>
+<button class="modal-btn btn-primary btn-block" onclick="switchModal('userEdit')">修改账户</button>
+<button class="modal-btn btn-danger btn-block" onclick="switchModal('userDel')">删除账户</button>
+<button class="modal-btn btn-primary btn-block" onclick="showUserList()">查询全部账户</button>
+<button class="modal-btn btn-gray btn-block" onclick="closeAllModal()">关闭</button>
+</div>
+</div>
 
-            <div class="sub-title">运维工单</div>
-            <button class="link-btn address-link" data-name="广东工单" onclick="window.open('https://docs.qq.com/sheet/DSG1SZ3JMcGNMc3dE','_blank')">
-                <i class="fas fa-ticket-alt"></i>广东工单
-            </button>
-            <button class="link-btn address-link" data-name="子公司工单" onclick="window.open('https://docs.qq.com/sheet/DSFBLY3JnUFZTdEFi','_blank')">
-                <i class="fas fa-ticket-alt"></i>子公司工单
-            </button>
-            <button class="link-btn address-link" data-name="设备借用" onclick="window.open('https://docs.qq.com/sheet/DSHVnRnp2Z0hranFX','_blank')">
-                <i class="fas fa-desktop"></i>设备借用
-            </button>
-            <button class="link-btn address-link" data-name="OMS工单" onclick="window.open('https://docs.qq.com/sheet/DR2hTTWlCVklZd0pl','_blank')">
-                <i class="fas fa-ticket-alt"></i>OMS工单
-            </button>
-            <button class="link-btn address-link" data-name="运维工具" onclick="window.open('https://www.kdocs.cn/l/ciS2rsxaPkUV','_blank')">
-                <i class="fas fa-wrench"></i>运维工具
-            </button>
+<!-- 账户列表弹窗 -->
+<div class="admin-modal" id="userListModal">
+<div class="modal-wrap">
+<h2 class="modal-title">全部账户列表</h2>
+<div id="userListBox" style="margin:16px 0;max-height:400px;overflow-y:auto;line-height:2;"></div>
+<button class="modal-btn btn-gray btn-block" onclick="closeAllModal()">关闭</button>
+</div>
+</div>
 
-            <div class="sub-title">资产</div>
-            <button class="link-btn address-link" data-name="闲置资产" onclick="window.open('https://docs.qq.com/sheet/DSG1GbERnakZhVkht','_blank')">
-                <i class="fas fa-box-open"></i>闲置资产
-            </button>
-            <button class="link-btn address-link" data-name="资产台帐" onclick="window.open('https://www.kdocs.cn/l/cseqEFnegdT5','_blank')">
-                <i class="fas fa-book"></i>资产台帐
-            </button>
-            <button class="link-btn address-link" data-name="文具管理" onclick="window.open('https://www.kdocs.cn/l/csnXYkeFfw8I','_blank')">
-                <i class="fas fa-pen"></i>文具管理
-            </button>
+<!-- 新增账户（带权限下拉） -->
+<div class="admin-modal" id="userAddModal">
+<div class="modal-wrap">
+<h2 class="modal-title">新增账户</h2>
+<div class="admin-item">
+<label>姓名</label>
+<input id="newUserName" placeholder="请输入用户姓名">
+</div>
+<div class="admin-item">
+<label>账号</label>
+<input id="newUserAcc" placeholder="账号">
+</div>
+<div class="admin-item">
+<label>密码</label>
+<input type="password" id="newUserPwd" placeholder="密码">
+</div>
+<div class="admin-item">
+<label>账户权限</label>
+<select id="newUserRole">
+<option value="false">员工</option>
+<option value="true">管理员</option>
+</select>
+</div>
+<div class="btn-group">
+<button class="modal-btn btn-primary" onclick="submitAddUser()">确认新增</button>
+<button class="modal-btn btn-gray" onclick="switchModal('userManage')">关闭</button>
+</div>
+</div>
+</div>
 
-            <div class="sub-title">我的</div>
-            <button class="link-btn address-link" data-name="付款台账" onclick="window.open('https://docs.qq.com/sheet/DSEFxbmhZUFdTTkpn','_blank')">
-                <i class="fas fa-money-bill-wave"></i>付款台账
-            </button>
+<!-- 修改账户（带权限下拉） -->
+<div class="admin-modal" id="userEditModal">
+<div class="modal-wrap">
+<h2 class="modal-title">修改账户</h2>
+<div class="admin-item">
+<label>选择账户</label>
+<select id="editUserSel" onchange="fillUserEdit()"></select>
+</div>
+<div class="admin-item">
+<label>新姓名</label>
+<input id="editUserName">
+</div>
+<div class="admin-item">
+<label>新密码</label>
+<input type="password" id="editUserPwd">
+</div>
+<div class="admin-item">
+<label>账户权限</label>
+<select id="editUserRole">
+<option value="false">员工</option>
+<option value="true">管理员</option>
+</select>
+</div>
+<div class="btn-group">
+<button class="modal-btn btn-primary" onclick="submitEditUser()">确认修改</button>
+<button class="modal-btn btn-gray" onclick="switchModal('userManage')">关闭</button>
+</div>
+</div>
+</div>
 
-            <div class="sub-title">模板</div>
-            <button class="link-btn address-link" data-name="加班模板" onclick="window.open('https://docs.qq.com/sheet/DSEdiakRVc25XaFhv','_blank')">
-                <i class="fas fa-file-invoice"></i>加班模板
-            </button>
-        </div>
+<!-- 删除账户 -->
+<div class="admin-modal" id="userDelModal">
+<div class="modal-wrap">
+<h2 class="modal-title">删除账户</h2>
+<div class="admin-item">
+<label>选择账户</label>
+<select id="delUserSel"></select>
+</div>
+<div class="btn-group">
+<button class="modal-btn btn-danger" onclick="submitDelUser()">永久删除</button>
+<button class="modal-btn btn-gray" onclick="switchModal('userManage')">关闭</button>
+</div>
+</div>
+</div>
 
-        <!-- 使用网址（默认隐藏） -->
-        <div id="url" class="tab-content" data-type="url">
-            <button class="link-btn url-link" data-name="github " onclick="window.open('https://github.com/','_blank')">
-                <i class="fab fa-github"></i>github&nbsp;
-            </button>
-            <button class="link-btn url-link" data-name="中小型客车" onclick="window.open('https://apply.jtj.gz.gov.cn/apply/','_blank')">
-                <i class="fas fa-bus"></i>中小型客车
-            </button>
-            <button class="link-btn url-link" data-name="软考  " onclick="window.open('https://www.ruankao.org.cn/','_blank')">
-                <i class="fas fa-graduation-cap"></i>软考&nbsp;&nbsp;&nbsp;
-            </button>
-        </div>
+<!-- 新增链接 -->
+<div class="admin-modal" id="addModal">
+<div class="modal-wrap">
+<h2 class="modal-title">新增链接</h2>
+<div class="admin-item">
+<label>大类</label>
+<select id="addBig">
+<option value="">请选择</option>
+<option value="办公软件">办公软件</option>
+<option value="办公地址">办公地址</option>
+<option value="使用网址">使用网址</option>
+<option value="休闲娱乐">休闲娱乐</option>
+<option value="AI+">AI+</option>
+</select>
+</div>
+<div class="admin-item">
+<label>小类</label>
+<input id="addSmall" placeholder="输入小类名称">
+</div>
+<div class="admin-item">
+<label>按钮名称</label>
+<input id="addName" placeholder="例如：GDC内网">
+</div>
+<div class="admin-item">
+<label>链接地址</label>
+<input id="addUrl" placeholder="后台管理填menu，账户管理填user，网页填https://xxx">
+</div>
+<div class="btn-group">
+<button class="modal-btn btn-primary" onclick="submitAdd()">确认新增</button>
+<button class="modal-btn btn-gray" onclick="switchModal('menu')">关闭</button>
+</div>
+</div>
+</div>
 
-        <!-- 休闲娱乐（默认隐藏） -->
-        <div id="fun" class="tab-content" data-type="fun">
-            <div class="sub-title">影音视频</div>
-            <button class="link-btn fun-link" data-name="抖音网页" onclick="window.open('https://www.douyin.com','_blank')">
-                <i class="fas fa-music"></i>抖音网页
-            </button>
-            <button class="link-btn fun-link" data-name="哔哩哔哩" onclick="window.open('https://www.bilibili.com','_blank')">
-                <i class="fas fa-tv"></i>哔哩哔哩
-            </button>
-            <button class="link-btn fun-link" data-name="腾讯视频" onclick="window.open('https://v.qq.com/','_blank')">
-                <i class="fas fa-film"></i>腾讯视频
-            </button>
-            <button class="link-btn fun-link" data-name="优酷视频" onclick="window.open('https://youku.com/','_blank')">
-                <i class="fas fa-video"></i>优酷视频
-            </button>
-            <button class="link-btn fun-link" data-name="爱奇艺" onclick="window.open('https://www.iqiyi.com/','_blank')">
-                <i class="fas fa-video"></i>爱奇艺&nbsp;&nbsp;
-            </button>
+<!-- 修改链接 -->
+<div class="admin-modal" id="editModal">
+<div class="modal-wrap">
+<h2 class="modal-title">修改链接</h2>
+<h3 class="modal-sub">原信息筛选</h3>
+<div class="admin-item">
+<label>原大类</label>
+<select id="editOldBig" onchange="loadEditSmall()">
+<option value="">请选择</option>
+<option value="办公软件">办公软件</option>
+<option value="办公地址">办公地址</option>
+<option value="使用网址">使用网址</option>
+<option value="休闲娱乐">休闲娱乐</option>
+<option value="AI+">AI+</option>
+</select>
+</div>
+<div class="admin-item">
+<label>原小类</label>
+<select id="editOldSmall" disabled onchange="loadEditName()">
+<option value="">先选大类</option>
+</select>
+</div>
+<div class="admin-item">
+<label>原名称</label>
+<select id="editOldName" disabled onchange="fillEditData()">
+<option value="">先选小类</option>
+</select>
+</div>
+<h3 class="modal-sub">新信息</h3>
+<div class="admin-item">
+<label>现大类</label>
+<select id="editNewBig">
+<option value="">请选择</option>
+<option value="办公软件">办公软件</option>
+<option value="办公地址">办公地址</option>
+<option value="使用网址">使用网址</option>
+<option value="休闲娱乐">休闲娱乐</option>
+<option value="AI+">AI+</option>
+</select>
+</div>
+<div class="admin-item">
+<label>现小类</label>
+<input id="editNewSmall" placeholder="新小类">
+</div>
+<div class="admin-item">
+<label>现名称</label>
+<input id="editNewName">
+</div>
+<div class="admin-item">
+<label>现链接</label>
+<input id="editNewUrl">
+</div>
+<div class="btn-group">
+<button class="modal-btn btn-primary" onclick="submitEdit()">确认修改</button>
+<button class="modal-btn btn-gray" onclick="switchModal('menu')">关闭</button>
+</div>
+</div>
+</div>
 
-            <div class="sub-title">音乐听歌</div>
-            <button class="link-btn fun-link" data-name="QQ音乐 " onclick="window.open('https://y.qq.com/','_blank')">
-                <i class="fas fa-music"></i>QQ音乐&nbsp;
-            </button>
-            <button class="link-btn fun-link" data-name="酷狗  " onclick="window.open('https://www.kugou.com/','_blank')">
-                <i class="fas fa-music"></i>酷狗&nbsp;&nbsp;&nbsp;
-            </button>
+<!-- 删除链接 -->
+<div class="admin-modal" id="delModal">
+<div class="modal-wrap">
+<h2 class="modal-title">删除链接</h2>
+<div class="admin-item">
+<label>大类</label>
+<select id="delBig" onchange="loadDelSmall()">
+<option value="">请选择</option>
+<option value="办公软件">办公软件</option>
+<option value="办公地址">办公地址</option>
+<option value="使用网址">使用网址</option>
+<option value="休闲娱乐">休闲娱乐</option>
+<option value="AI+">AI+</option>
+</select>
+</div>
+<div class="admin-item">
+<label>小类</label>
+<select id="delSmall" disabled onchange="loadDelName()">
+<option value="">先选大类</option>
+</select>
+</div>
+<div class="admin-item">
+<label>链接名称</label>
+<select id="delName" disabled>
+<option value="">先选小类</option>
+</select>
+</div>
+<div class="btn-group">
+<button class="modal-btn btn-danger" onclick="submitDel()">永久删除</button>
+<button class="modal-btn btn-gray" onclick="switchModal('menu')">关闭</button>
+</div>
+</div>
+</div>
 
-            <div class="sub-title">社交资讯</div>
-            <button class="link-btn fun-link" data-name="微博  " onclick="window.open('https://weibo.com/','_blank')">
-                <i class="fab fa-weibo"></i>微博&nbsp;&nbsp;&nbsp;
-            </button>
-
-            <div class="sub-title">购物二手</div>
-            <button class="link-btn fun-link" data-name="京东  " onclick="window.open('https://www.jd.com/','_blank')">
-                <i class="fas fa-shopping-cart"></i>京东&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn fun-link" data-name="淘宝  " onclick="window.open('https://taobao.com/','_blank')">
-                <i class="fas fa-store"></i>淘宝&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn fun-link" data-name="拼多多" onclick="window.open('https://www.pinduoduo.com/','_blank')">
-                <i class="fas fa-box"></i>拼多多
-            </button>
-            <button class="link-btn fun-link" data-name="闲鱼  " onclick="window.open('https://2.taobao.com/','_blank')">
-                <i class="fas fa-recycle"></i>闲鱼&nbsp;&nbsp;&nbsp;
-            </button>
-
-            <div class="sub-title">生活出行</div>
-            <button class="link-btn fun-link" data-name="美团  " onclick="window.open('https://www.meituan.com/','_blank')">
-                <i class="fas fa-utensils"></i>美团&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn fun-link" data-name="高德地图" onclick="window.open('https://amap.com/','_blank')">
-                <i class="fas fa-map-marker-alt"></i>高德地图
-            </button>
-        </div>
-
-        <!-- AI+ 单独小分类 -->
-        <div id="ai" class="tab-content" data-type="ai">
-            <div class="sub-title">AI+</div>
-            <button class="link-btn ai-link" data-name="豆包AI" onclick="window.open('https://www.doubao.com','_blank')">
-                <i class="fas fa-brain"></i>豆包AI
-            </button>
-            <button class="link-btn ai-link" data-name="文心一言" onclick="window.open('https://chat.baidu.com/?enter_type=yiyan_site','_blank')">
-                <i class="fas fa-feather-alt"></i>文心一言
-            </button>
-            <button class="link-btn ai-link" data-name="通义千问" onclick="window.open('https://tongyi.aliyun.com/','_blank')">
-                <i class="fas fa-cloud"></i>通义千问
-            </button>
-            <button class="link-btn ai-link" data-name="DeepSeek" onclick="window.open('https://www.deepseek.com/','_blank')">
-                <i class="fas fa-microchip"></i>DeepSeek
-            </button>
-            <button class="link-btn ai-link" data-name="Kimi  " onclick="window.open('https://kimi.moonshot.cn/','_blank')">
-                <i class="fas fa-comment-dots"></i>Kimi&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn ai-link" data-name="GPT    " onclick="window.open('https://chat.openai.com/','_blank')">
-                <i class="fas fa-robot"></i>GPT&nbsp;&nbsp;&nbsp;&nbsp;
-            </button>
-            <button class="link-btn ai-link" data-name="智谱清言" onclick="window.open('https://www.zhipuai.cn/','_blank')">
-                <i class="fas fa-lightbulb"></i>智谱清言
-            </button>
-            <button class="link-btn ai-link" data-name="讯飞星火" onclick="window.open('https://xinghuo.xfyun.cn/','_blank')">
-                <i class="fas fa-microphone"></i>讯飞星火
-            </button>
-        </div>
-    </div>
-
-    <script>
-        const suggestBox = document.getElementById('suggestBox');
-        const searchInput = document.getElementById('searchInput');
-        // 收集全部按钮名称作为联想数据源
-        const allToolNames = Array.from(document.querySelectorAll('.link-btn')).map(item=>item.dataset.name.trim());
-        // 标记隐藏分类显示状态，初始隐藏
-        let extraTabShow = false;
-
-        // 输入框实时输入（仅搜索下拉，不控制分类）
-        function inputChange(val) {
-            const txt = val.trim();
-            suggestBox.innerHTML = "";
-            if(txt.length === 0){
-                suggestBox.classList.remove('show');
-                return;
-            }
-            const matchList = allToolNames.filter(name=>name.toLowerCase().includes(txt.toLowerCase()));
-            if(matchList.length > 0){
-                matchList.forEach(name=>{
-                    const div = document.createElement('div');
-                    div.className = 'suggest-item';
-                    div.innerText = name;
-                    div.onclick = ()=>selectSuggest(name);
-                    suggestBox.appendChild(div);
-                })
-                suggestBox.classList.add('show');
-            }else{
-                suggestBox.classList.remove('show');
-            }
-        }
-        // 点击下拉选项回填搜索并执行搜索
-        function selectSuggest(name) {
-            searchInput.value = name;
-            suggestBox.classList.remove('show');
-            searchTool();
-        }
-
-        // 切换主内容板块
-        function switchTab(id, btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(item => item.classList.remove('show'));
-            document.getElementById(id).classList.add('show');
-            resetAllBtnShow();
-        }
-
-        // 重置搜索过滤，全部按钮可见
-        function resetAllBtnShow(){
-            document.querySelectorAll('.link-btn').forEach(btn=>{
-                btn.classList.remove('hide-item');
-            })
-        }
-
-        // 回车事件：666切换隐藏分类显隐；其它执行搜索
-        function enterSearch(e){
-            if(e.key === 'Enter'){
-                const val = searchInput.value.trim();
-                if(val === '666'){
-                    // 切换使用网址、休闲娱乐导航按钮显示/隐藏
-                    extraTabShow = !extraTabShow;
-                    const urlBtn = document.querySelector('.tab-url');
-                    const funBtn = document.querySelector('.tab-fun');
-                    if(extraTabShow){
-                        urlBtn.classList.remove('hidden-tab');
-                        funBtn.classList.remove('hidden-tab');
-                    }else{
-                        urlBtn.classList.add('hidden-tab');
-                        funBtn.classList.add('hidden-tab');
-                    }
-                    suggestBox.classList.remove('show');
-                    return;
-                }
-                // 普通搜索逻辑
-                suggestBox.classList.remove('show');
-                searchTool();
-            }
-        }
-        // 关键词模糊搜索，跨板块匹配
-        function searchTool() {
-            const keyword = searchInput.value.trim().toLowerCase();
-            suggestBox.classList.remove('show');
-            if(!keyword){
-                resetAllBtnShow();
-                return;
-            }
-            resetAllBtnShow();
-            let hasMatch = false;
-            let matchTabId = "";
-            const allBtns = document.querySelectorAll('.link-btn');
-            allBtns.forEach(btn=>{
-                const name = btn.dataset.name.toLowerCase();
-                const tab = btn.closest('.tab-content');
-                const tabId = tab.id;
-                if(!name.includes(keyword)){
-                    btn.classList.add('hide-item');
-                }else{
-                    hasMatch = true;
-                    matchTabId = tab.id;
-                }
-            })
-            if(!hasMatch){
-                alert("未找到匹配工具");
-                resetAllBtnShow();
-                return;
-            }
-            // 只切换到匹配板块
-            document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('show'));
-            document.getElementById(matchTabId).classList.add('show');
-            // 自动激活对应顶部标签
-            const tabMap = {
-                office: '.tab-office',
-                address: '.tab-address',
-                url: '.tab-url',
-                fun: '.tab-fun',
-                ai: '.tab-ai'
-            };
-            const activeBtn = document.querySelector(tabMap[matchTabId]);
-            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-            activeBtn.classList.add('active');
-        }
-        // 点击空白关闭搜索下拉
-        document.addEventListener('click',(e)=>{
-            if(!searchInput.contains(e.target) && !suggestBox.contains(e.target)){
-                suggestBox.classList.remove('show');
-            }
-        })
-    </script>
+<script>
+const STORAGE_LINK = "link_all_data";
+const STORAGE_USER = "user_accounts";
+const STORAGE_LOGIN = "login_user";
+const bigTabMap = {"办公软件":"office","办公地址":"address","使用网址":"url","休闲娱乐":"fun","AI+":"ai"};
+const styleMap = {office:"office-link",address:"address-link",url:"url-link",fun:"fun-link",ai:"ai-link"};
+// 图标映射：新增360浏览器图标，无任何times/方框叉图标
+const iconMap = {
+"微信":"fa-weixin","企业微信":"fa-weixin","QQ":"fa-qq","钉钉":"fa-robot","腾讯会议":"fa-video","向日葵":"fa-sun","Everything":"fa-search",
+"WPS":"fa-file-excel","腾讯文档":"fa-file-alt","金山文档":"fa-file-text","360浏览器":"fa-window-alt","谷歌浏览器":"fa-chrome","搜狗浏览器":"fa-search",
+"火狐浏览器":"fa-firefox","夸克浏览器":"fa-bolt","QQ浏览器":"fa-window-max","影刀":"fa-scissors","优启通":"fa-cogs","迅雷":"fa-download",
+"GDC内网":"fa-building","GDC外网":"fa-globe","GDC2.0内网":"fa-building","GDC2.0外网":"fa-globe","员工门户内网":"fa-user","员工门户外网":"fa-user",
+"MA系统":"fa-database","企业邮箱":"fa-envelope","打印管理":"fa-print","OMS系统":"fa-cube","电采平台":"fa-shopping-cart","奇安信":"fa-shield-alt",
+"广东工单":"fa-list-alt","子公司工单":"fa-list","设备借用":"fa-laptop","OMS工单":"fa-tasks","运维工具":"fa-tools","闲置资产":"fa-box",
+"资产台帐":"fa-table","文具管理":"fa-pencil","付款台账":"fa-money-bill","加班模板":"fa-calendar","Github":"fa-github","中小型客车申报":"fa-car",
+"软考官网":"fa-certificate","后台管理":"fa-cog","账户管理":"fa-users","抖音网页版":"fa-music","哔哩哔哩":"fa-play-circle","腾讯视频":"fa-video",
+"优酷":"fa-film","爱奇艺":"fa-tv","QQ音乐":"fa-music","酷狗音乐":"fa-music","微博":"fa-comment","京东":"fa-shopping-bag",
+"淘宝":"fa-shopping-cart","拼多多":"fa-tags","闲鱼":"fa-fish","美团":"fa-utensils","高德地图":"fa-map-marked-alt","豆包AI":"fa-robot",
+"文心一言":"fa-brain","通义千问":"fa-comments","DeepSeek":"fa-search","Kimi":"fa-star","ChatGPT":"fa-robot","智谱清言":"fa-lightbulb","讯飞星火":"fa-fire"
+};
+// 员工隐藏分组
+const hideGroupForEmployee = ["资产台账","个人台账","模板文档"];
+// 初始数据
+const originFullData = {
+"办公软件":{
+"日常办公":[{"name":"微信","url":"https://weixin.qq.com/"},{"name":"企业微信","url":"https://work.weixin.qq.com/"},{"name":"QQ","url":"https://im.qq.com/"},{"name":"钉钉","url":"https://www.dingtalk.com/"},{"name":"腾讯会议","url":"https://meeting.tencent.com/"},{"name":"向日葵","url":"https://sunlogin.oray.com/"},{"name":"Everything","url":"https://www.voidtools.com/zh-cn/"}],
+"办公文档":[{"name":"WPS","url":"https://www.wps.cn"},{"name":"腾讯文档","url":"https://docs.qq.com/"},{"name":"金山文档","url":"https://kdocs.cn/"}],
+"浏览器":[{"name":"360浏览器","url":"https://browser.360.cn/"},{"name":"谷歌浏览器","url":"https://www.google.com/chrome/"},{"name":"搜狗浏览器","url":"https://ie.sogou.com/"},{"name":"火狐浏览器","url":"https://www.firefox.com.cn/"},{"name":"夸克浏览器","url":"https://quark.sm.cn/"},{"name":"QQ浏览器","url":"https://browser.qq.com/"}],
+"其他工具":[{"name":"影刀","url":"https://www.yingdao.com/"},{"name":"优启通","url":"https://www.uqitong.com/"},{"name":"迅雷","url":"https://www.xunlei.com/"}]
+},
+"办公地址":{
+"系统地址":[{"name":"GDC内网","url":"http://172.28.1.115/gdcenter/"},{"name":"GDC外网","url":"http://www.sysu-pharm.com/gdcenter/"},{"name":"GDC2.0内网","url":"http://172.28.1.54:9093/login"},{"name":"GDC2.0外网","url":"http://59.37.39.202:9093"},{"name":"员工门户内网","url":"http://10.1.17.101"},{"name":"员工门户外网","url":"https://idm.shaphar.com"},{"name":"MA系统","url":"https://wmprod.sygd.shaphar.com:11001/login.jsp"},{"name":"企业邮箱","url":"https://exmail.qq.com/cgi-bin/loginpage"},{"name":"打印管理","url":"https://172.28.1.72:8085/cpms/#/login"},{"name":"OMS系统","url":"http://196.6.27.121/oms/coframe/auth/skin5/login.jsp"},{"name":"电采平台","url":"https://sygdmall.shaphar.com/"},{"name":"奇安信","url":"https://172.28.1.132:19345/about/download"}],
+"运维工单":[{"name":"广东工单","url":"https://docs.qq.com/sheet/DSG1SZ3JMcGNMc3dE"},{"name":"子公司工单","url":"https://docs.qq.com/sheet/DSFBLY3JnUFZTdEFi"},{"name":"设备借用","url":"https://docs.qq.com/sheet/DSHVnRnp2Z0hranFX"},{"name":"OMS工单","url":"https://docs.qq.com/sheet/DR2hTTWlCVklZd0pl"},{"name":"运维工具","url":"https://www.kdocs.cn/l/ciS2rsxaPkUV"}],
+"资产台账":[{"name":"闲置资产","url":"https://docs.qq.com/sheet/DSG1GbERnakZhVkht"},{"name":"资产台帐","url":"https://www.kdocs.cn/l/cseqEFnegdT5"},{"name":"文具管理","url":"https://csnXYkeFfw8I"}],
+"个人台账":[{"name":"付款台账","url":"https://docs.qq.com/sheet/DSEFxbmhZUFdTTkpn"}],
+"模板文档":[{"name":"加班模板","url":"https://docs.qq.com/sheet/DSEdiakRVc25XaFhv"}]
+},
+"使用网址":{
+"通用工具":[{"name":"Github","url":"https://github.com/"},{"name":"中小型客车申报","url":"https://apply.jtj.gz.gov.cn/apply/"},{"name":"软考官网","url":"https://www.ruankao.org.cn/"}],
+"系统管理":[{"name":"后台管理","url":"menu"},{"name":"账户管理","url":"user"}]
+},
+"休闲娱乐":{
+"影音视频":[{"name":"抖音网页版","url":"https://www.douyin.com"},{"name":"哔哩哔哩","url":"https://www.bilibili.com"},{"name":"腾讯视频","url":"https://v.qq.com/"},{"name":"优酷","url":"https://youku.com/"},{"name":"爱奇艺","url":"https://www.iqiyi.com/"}],
+"音乐听歌":[{"name":"QQ音乐","url":"https://y.qq.com/"},{"name":"酷狗音乐","url":"https://www.kugou.com/"}],
+"社交资讯":[{"name":"微博","url":"https://weibo.com/"}],
+"购物平台":[{"name":"京东","url":"https://www.jd.com/"},{"name":"淘宝","url":"https://taobao.com/"},{"name":"拼多多","url":"https://pinduoduo.com/"},{"name":"闲鱼","url":"https://2.taobao.com/"}],
+"生活出行":[{"name":"美团","url":"https://www.meituan.com/"},{"name":"高德地图","url":"https://amap.com/"}]
+},
+"AI+":{
+"AI工具合集":[{"name":"豆包AI","url":"https://www.doubao.com"},{"name":"文心一言","url":"https://chat.baidu.com/?enter_type=yiyan_site"},{"name":"通义千问","url":"https://tongyi.aliyun.com/"},{"name":"DeepSeek","url":"https://www.deepseek.com/"},{"name":"Kimi","url":"https://kimi.moonshot.cn/"},{"name":"ChatGPT","url":"https://chat.openai.com/"},{"name":"智谱清言","url":"https://zhipuai.cn/"},{"name":"讯飞星火","url":"https://xinghuo.xfyun.cn/"}]
+}
+};
+// 初始化存储
+function initStorage(){
+if(!localStorage.getItem(STORAGE_LINK)) localStorage.setItem(STORAGE_LINK,JSON.stringify(originFullData));
+if(!localStorage.getItem(STORAGE_USER)) localStorage.setItem(STORAGE_USER,JSON.stringify([{name:"系统管理员",acc:"666",pwd:"666",isAdmin:true}]));
+}
+function getLinkData(){return JSON.parse(localStorage.getItem(STORAGE_LINK));}
+function saveLinkData(d){localStorage.setItem(STORAGE_LINK,JSON.stringify(d));}
+function getUserList(){return JSON.parse(localStorage.getItem(STORAGE_USER));}
+function saveUserList(arr){localStorage.setItem(STORAGE_USER,JSON.stringify(arr));}
+function getLoginUser(){return localStorage.getItem(STORAGE_LOGIN);}
+function setLoginUser(acc){localStorage.setItem(STORAGE_LOGIN,acc);}
+function clearLogin(){localStorage.removeItem(STORAGE_LOGIN);}
+// 判断管理员
+function isAdmin(){
+let acc = getLoginUser();
+if(!acc) return false;
+let list = getUserList();
+let u = list.find(x=>x.acc===acc);
+return u?.isAdmin === true;
+}
+// 退出登录 纯白页面
+function logout(){
+clearLogin();
+document.body.innerHTML = '';
+const page = document.createElement('div');
+page.className = 'login-only-page';
+page.innerHTML = `
+<div class="login-only-modal">
+<h2 class="modal-title">系统登录</h2>
+<div class="admin-item">
+<label>账号</label>
+<input id="loginAcc" placeholder="请输入账号">
+</div>
+<div class="admin-item">
+<label>密码</label>
+<input type="password" id="loginPwd" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()">
+</div>
+<div class="btn-group">
+<button class="modal-btn btn-primary" onclick="doLogin()">登录</button>
+</div>
+</div>`;
+document.body.appendChild(page);
+window.doLogin = function(){
+let a = document.getElementById("loginAcc").value.trim();
+let p = document.getElementById("loginPwd").value.trim();
+let list = JSON.parse(localStorage.getItem(STORAGE_USER)||'[]');
+let user = list.find(x=>x.acc===a&&x.pwd===p);
+if(!user) return alert("账号密码错误");
+setLoginUser(a);
+location.reload();
+}
+}
+// 登录
+function doLogin(){
+let acc = document.getElementById("loginAcc").value.trim();
+let pwd = document.getElementById("loginPwd").value.trim();
+let list = getUserList();
+let user = list.find(x=>x.acc===acc&&x.pwd===pwd);
+if(!user) return alert("账号或密码错误");
+setLoginUser(acc);
+closeAllModal();
+document.getElementById("showUserName").innerText = user.name;
+document.getElementById("userBar").style.display = "flex";
+renderAll();
+refreshSearch();
+}
+// 账户管理
+function showUserList(){
+closeAllModal();
+let list = getUserList();
+let box = document.getElementById("userListBox");
+let html = '';
+list.forEach(u=>html += `<div>姓名：${u.name} 账号：${u.acc} 【${u.isAdmin?'管理员':'员工'}】</div>`);
+box.innerHTML = html;
+document.getElementById("userListModal").classList.add("show");
+}
+function fillUserSelect(){
+let list = getUserList();
+let editSel = document.getElementById("editUserSel");
+let delSel = document.getElementById("delUserSel");
+editSel.innerHTML = '<option value="">选择账户</option>';
+delSel.innerHTML = '<option value="">选择账户</option>';
+list.forEach(u=>{
+let op1 = document.createElement("option");op1.value=u.acc;op1.innerText=`${u.name}(${u.acc})`;editSel.appendChild(op1);
+let op2 = document.createElement("option");op2.value=u.acc;op2.innerText=`${u.name}(${u.acc})`;delSel.appendChild(op2);
+})
+}
+function submitAddUser(){
+let name = document.getElementById("newUserName").value.trim();
+let acc = document.getElementById("newUserAcc").value.trim();
+let pwd = document.getElementById("newUserPwd").value.trim();
+let role = document.getElementById("newUserRole").value === "true";
+if(!name||!acc||!pwd) return alert("不能为空");
+let list = getUserList();
+if(list.find(x=>x.acc===acc)) return alert("账号已存在");
+list.push({name,acc,pwd,isAdmin:role});
+saveUserList(list);
+alert("新增成功");
+switchModal("userManage");
+}
+function fillUserEdit(){
+let acc = document.getElementById("editUserSel").value;
+let list = getUserList();
+let u = list.find(x=>x.acc===acc);
+document.getElementById("editUserName").value = u.name;
+document.getElementById("editUserPwd").value = '';
+document.getElementById("editUserRole").value = u.isAdmin?"true":"false";
+}
+function submitEditUser(){
+let acc = document.getElementById("editUserSel").value;
+let newName = document.getElementById("editUserName").value.trim();
+let newPwd = document.getElementById("editUserPwd").value.trim();
+let newRole = document.getElementById("editUserRole").value === "true";
+if(!acc||!newName) return alert("姓名必填");
+let list = getUserList();
+let idx = list.findIndex(x=>x.acc===acc);
+list[idx].name = newName;
+list[idx].isAdmin = newRole;
+if(newPwd) list[idx].pwd = newPwd;
+saveUserList(list);
+alert("修改完成");
+switchModal("userManage");
+}
+function submitDelUser(){
+let acc = document.getElementById("delUserSel").value;
+if(!acc) return alert("选择账户");
+if(acc === "666") return alert("禁止删除初始管理员");
+if(!confirm("确认删除？")) return;
+let list = getUserList().filter(x=>x.acc!==acc);
+saveUserList(list);
+alert("已删除");
+switchModal("userManage");
+}
+// 弹窗控制
+function closeAllModal(){
+document.querySelectorAll(".admin-modal").forEach(m=>m.classList.remove("show"));
+}
+function switchModal(type){
+closeAllModal();
+let modal = document.getElementById(type+"Modal");
+modal.classList.add("show");
+if(type==="userManage") fillUserSelect();
+resetModalInput(type);
+}
+function resetModalInput(type){
+if(type=="add"){
+document.getElementById("addBig").value="";
+document.getElementById("addSmall").value="";
+document.getElementById("addName").value="";
+document.getElementById("addUrl").value="";
+}
+if(type=="edit"){
+document.getElementById("editOldBig").value="";
+document.getElementById("editOldSmall").innerHTML='<option value="">先选大类</option>';
+document.getElementById("editOldSmall").disabled=true;
+document.getElementById("editOldName").innerHTML='<option value="">先选小类</option>';
+document.getElementById("editOldName").disabled=true;
+document.getElementById("editNewBig").value="";
+document.getElementById("editNewSmall").value="";
+document.getElementById("editNewName").value="";
+document.getElementById("editNewUrl").value="";
+}
+if(type=="del"){
+document.getElementById("delBig").value="";
+document.getElementById("delSmall").innerHTML='<option value="">先选大类</option>';
+document.getElementById("delSmall").disabled=true;
+document.getElementById("delName").innerHTML='<option value="">先选小类</option>';
+document.getElementById("delName").disabled=true;
+}
+if(type=="userAdd"){
+document.getElementById("newUserName").value="";
+document.getElementById("newUserAcc").value="";
+document.getElementById("newUserPwd").value="";
+document.getElementById("newUserRole").value="false";
+}
+}
+// 链接CRUD
+function submitAdd(){
+let big = document.getElementById("addBig").value.trim();
+let small = document.getElementById("addSmall").value.trim();
+let name = document.getElementById("addName").value.trim();
+let url = document.getElementById("addUrl").value.trim();
+if(!big||!small||!name||!url) return alert("全部必填");
+if(url!="menu"&&url!="user"&&!url.startsWith("http")) return alert("链接格式错误");
+let data = getLinkData();
+if(!data[big]) data[big]={};
+if(!data[big][small]) data[big][small]=[];
+data[big][small].push({name,url});
+saveLinkData(data);
+alert("新增成功");
+switchModal("menu");
+renderAll();refreshSearch();
+}
+function loadEditSmall(){
+let big = document.getElementById("editOldBig").value;
+let sel = document.getElementById("editOldSmall");
+sel.innerHTML='<option value="">选择小类</option>';
+sel.disabled=true;
+document.getElementById("editOldName").innerHTML='<option value="">先选小类</option>';
+document.getElementById("editOldName").disabled=true;
+if(!big) return;
+let d = getLinkData();
+Object.keys(d[big]).forEach(s=>{
+let op = document.createElement("option");op.value=s;op.innerText=s;sel.appendChild(op);
+})
+sel.disabled=false;
+}
+function loadEditName(){
+let big = document.getElementById("editOldBig").value;
+let small = document.getElementById("editOldSmall").value;
+let sel = document.getElementById("editOldName");
+sel.innerHTML='<option value="">选择链接</option>';
+sel.disabled=true;
+if(!small) return;
+let d = getLinkData();
+d[big][small].forEach(item=>{
+let op = document.createElement("option");
+op.value = JSON.stringify({big,small,name:item.name,url:item.url});
+op.innerText = item.name;
+sel.appendChild(op);
+})
+sel.disabled=false;
+}
+function fillEditData(){
+let val = document.getElementById("editOldName").value;
+if(!val) return;
+let old = JSON.parse(val);
+document.getElementById("editNewBig").value = old.big;
+document.getElementById("editNewSmall").value = old.small;
+document.getElementById("editNewName").value = old.name;
+document.getElementById("editNewUrl").value = old.url;
+}
+function submitEdit(){
+let oldVal = document.getElementById("editOldName").value;
+if(!oldVal) return alert("选择原链接");
+let old = JSON.parse(oldVal);
+let newBig = document.getElementById("editNewBig").value.trim();
+let newSmall = document.getElementById("editNewSmall").value.trim();
+let newName = document.getElementById("editNewName").value.trim();
+let newUrl = document.getElementById("editNewUrl").value.trim();
+if(!newBig||!newSmall||!newName||!newUrl) return alert("信息不能为空");
+if(newUrl!="menu"&&newUrl!="user"&&!newUrl.startsWith("http")) return alert("链接格式错误");
+let d = getLinkData();
+d[old.big][old.small] = d[old.big][old.small].filter(i=>!(i.name==old.name&&i.url==old.url));
+if(d[old.big][old.small].length===0) delete d[old.big][old.small];
+if(Object.keys(d[old.big]).length===0) delete d[old.big];
+if(!d[newBig]) d[newBig]={};
+if(!d[newBig][newSmall]) d[newBig][newSmall]=[];
+d[newBig][newSmall].push({name:newName,url:newUrl});
+saveLinkData(d);
+alert("修改完成");switchModal("menu");renderAll();refreshSearch();
+}
+function loadDelSmall(){
+let big = document.getElementById("delBig").value;
+let sel = document.getElementById("delSmall");
+sel.innerHTML='<option value="">选择小类</option>';
+sel.disabled=true;
+document.getElementById("delName").innerHTML='<option value="">先选小类</option>';
+document.getElementById("delName").disabled=true;
+if(!big) return;
+let d = getLinkData();
+Object.keys(d[big]).forEach(s=>{
+let op = document.createElement("option");op.value=s;op.innerText=s;sel.appendChild(op);
+})
+sel.disabled=false;
+}
+function loadDelName(){
+let big = document.getElementById("delBig").value;
+let small = document.getElementById("delSmall").value;
+let sel = document.getElementById("delName");
+sel.innerHTML='<option value="">选择链接</option>';
+sel.disabled=true;
+if(!small) return;
+let d = getLinkData();
+d[big][small].forEach(item=>{
+let op = document.createElement("option");
+op.value = JSON.stringify({big,small,name:item.name,url:item.url});
+op.innerText = item.name;
+sel.appendChild(op);
+})
+sel.disabled=false;
+}
+function submitDel(){
+let val = document.getElementById("delName").value;
+if(!val) return alert("选择链接");
+let target = JSON.parse(val);
+if(!confirm(`确定删除【${target.name}】？`)) return;
+let d = getLinkData();
+d[target.big][target.small] = d[target.big][target.small].filter(i=>!(i.name==target.name&&i.url==target.url));
+if(d[target.big][target.small].length===0) delete d[target.big][target.small];
+if(Object.keys(d[target.big]).length===0) delete d[target.big];
+saveLinkData(d);
+alert("已删除");switchModal("menu");renderAll();refreshSearch();
+}
+// 生成按钮HTML
+function buildBtnHtml(name){
+let text = name;
+let tag = '';
+if(name.includes("内网")) tag = `<span class="tag-vertical tag-in">内网</span>`;
+if(name.includes("外网")) tag = `<span class="tag-vertical tag-out">外网</span>`;
+text = text.replace("内网","").replace("外网","");
+let icon = iconMap[name] || "fa-link";
+return `<div class="btn-text"><i class="fas ${icon}"></i>${text}</div>${tag}`;
+}
+// 渲染页面
+function renderAll(){
+document.querySelectorAll(".tab-content").forEach(t=>t.innerHTML="");
+let admin = isAdmin();
+// 顶部标签权限
+document.querySelectorAll("#tabWrap .tab-btn").forEach(btn=>{
+let b = btn.dataset.big;
+if(!admin){
+if(b==="使用网址"||b==="休闲娱乐") btn.classList.add("hidden-tab");
+else btn.classList.remove("hidden-tab");
+}else{
+btn.classList.remove("hidden-tab");
+}
+})
+let data = getLinkData();
+for(let big in data){
+let tabId = bigTabMap[big];
+let box = document.getElementById(tabId);
+let smallObj = data[big];
+for(let small in smallObj){
+let group = document.createElement("div");
+group.className = "small-group";
+// 员工隐藏指定分组
+if(!admin && hideGroupForEmployee.includes(small)) group.classList.add("employee-hide");
+let titleDom = document.createElement("div");
+titleDom.className = "sub-title";
+titleDom.innerText = small;
+titleDom.draggable = admin;
+group.appendChild(titleDom);
+let btnWrap = document.createElement("div");
+btnWrap.className = "btn-wrap";
+smallObj[small].forEach(item=>{
+let btn = document.createElement("button");
+btn.className = `link-btn ${styleMap[tabId]}`;
+btn.dataset.name = item.name;
+btn.innerHTML = buildBtnHtml(item.name);
+btn.draggable = admin;
+if(item.url === "menu") btn.onclick = ()=>switchModal("menu");
+else if(item.url === "user") btn.onclick = ()=>switchModal("userManage");
+else btn.onclick = ()=>window.open(item.url,"_blank");
+btnWrap.appendChild(btn);
+})
+group.appendChild(btnWrap);
+box.appendChild(group);
+}
+}
+bindDrag();
+}
+// 拖拽绑定
+function bindDrag(){
+if(!isAdmin()) return;
+// 顶部标签拖拽
+let dragTab = null;
+document.querySelectorAll("#tabWrap .tab-btn").forEach(el=>{
+el.addEventListener("dragstart",e=>{dragTab=el;el.classList.add("drag-over")});
+el.addEventListener("dragend",()=>{dragTab=null;el.classList.remove("drag-over")});
+el.addEventListener("dragover",e=>e.preventDefault());
+el.addEventListener("drop",e=>{
+e.preventDefault();
+if(dragTab&&dragTab!==el) el.parentNode.insertBefore(dragTab,el);
+})
+})
+// 分组拖拽
+let dragGroup = null;
+document.querySelectorAll(".sub-title").forEach(title=>{
+let g = title.closest(".small-group");
+title.addEventListener("dragstart",e=>{dragGroup=g;g.classList.add("drag-over")});
+title.addEventListener("dragend",()=>{dragGroup=null;document.querySelectorAll(".small-group").forEach(x=>x.classList.remove("drag-over"))});
+})
+document.querySelectorAll(".small-group").forEach(g=>{
+g.addEventListener("dragover",e=>e.preventDefault());
+g.addEventListener("drop",e=>{
+e.preventDefault();
+if(dragGroup && dragGroup!==g) g.parentNode.insertBefore(dragGroup,g);
+})
+})
+// 按钮拖拽
+let dragBtn = null;
+document.querySelectorAll(".btn-wrap").forEach(wrap=>{
+wrap.addEventListener("dragover",e=>e.preventDefault());
+wrap.addEventListener("drop",e=>{
+e.preventDefault();
+if(!dragBtn) return;
+let target = e.target.closest(".link-btn");
+if(target&&target!==dragBtn){
+let rect = target.getBoundingClientRect();
+let mid = rect.x + rect.width/2;
+if(e.clientX < mid) wrap.insertBefore(dragBtn,target);
+else target.after(dragBtn);
+}else{
+wrap.appendChild(dragBtn);
+}
+dragBtn = null;
+document.querySelectorAll(".link-btn").forEach(b=>b.classList.remove("drag-over"));
+})
+})
+document.querySelectorAll(".link-btn").forEach(btn=>{
+btn.addEventListener("dragstart",e=>{dragBtn=btn;btn.classList.add("drag-over")});
+btn.addEventListener("dragend",()=>btn.classList.remove("drag-over"));
+})
+}
+// 搜索
+function refreshSearch(){
+window.searchWordList = [];
+let d = getLinkData();
+for(let big in d){
+let sm = d[big];
+for(let s in sm){
+sm[s].forEach(item=>window.searchWordList.push(item.name))
+}
+}
+window.searchWordList = [...new Set(window.searchWordList)];
+}
+function inputChangeSearch(v){
+let box = document.getElementById("suggestBox");
+box.innerHTML = "";
+if(!v.trim()) return box.classList.remove("show");
+let kw = v.toLowerCase();
+let match = window.searchWordList.filter(n=>n.toLowerCase().includes(kw));
+if(match.length===0) return box.classList.remove("show");
+match.forEach(w=>{
+let div = document.createElement("div");
+div.className = "suggest-item";
+div.innerText = w;
+div.onclick = ()=>{
+document.getElementById("searchInput").value = w;
+runSearch();
+box.classList.remove("show");
+}
+box.appendChild(div);
+})
+box.classList.add("show");
+}
+function runSearch(){
+let kw = document.getElementById("searchInput").value.trim().toLowerCase();
+if(!kw){
+document.querySelectorAll(".link-btn").forEach(b=>b.classList.remove("highlight"));
+return renderAll();
+}
+let d = getLinkData();
+let targetTab = null;
+outer:for(let big in d){
+let sm = d[big];
+for(let s in sm){
+for(let item of sm[s]){
+if(item.name.toLowerCase().includes(kw)){
+targetTab = bigTabMap[big];
+break outer;
+}
+}
+}
+}
+if(!targetTab) return alert("未找到匹配站点");
+document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("show"));
+document.getElementById(targetTab).classList.add("show");
+document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+document.querySelector(`.tab-${targetTab}`).classList.add("active");
+document.querySelectorAll(".link-btn").forEach(b=>{
+b.classList.remove("highlight");
+if(b.dataset.name.toLowerCase().includes(kw)) b.classList.add("highlight");
+})
+}
+function enterSearchEvent(e){
+if(e.key === "Enter"){
+runSearch();
+document.getElementById("suggestBox").classList.remove("show");
+}
+}
+function switchTab(tabId,btn){
+document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("show"));
+document.getElementById(tabId).classList.add("show");
+}
+document.addEventListener("click",e=>{
+let box = document.getElementById("suggestBox");
+let input = document.getElementById("searchInput");
+if(!input.contains(e.target)) box.classList.remove("show");
+})
+window.onload = function(){
+initStorage();
+let loginAcc = getLoginUser();
+if(!loginAcc){
+document.getElementById("loginModal").classList.add("show");
+}else{
+let list = getUserList();
+let user = list.find(x=>x.acc===loginAcc);
+document.getElementById("showUserName").innerText = user.name;
+document.getElementById("userBar").style.display = "flex";
+renderAll();
+refreshSearch();
+}
+}
+</script>
 </body>
 </html>
